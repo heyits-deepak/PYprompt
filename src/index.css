@@ -1,0 +1,62 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body{
+  background: #16181d;
+  overflow: hidden;
+}
+
+.prompt-head{
+  font-family: "Monoton", sans-serif;
+  font-weight: 400;
+  font-style: normal;
+}
+
+.prompt-head2{
+  font-family: "Press Start 2P", serif;
+  font-weight: 400;
+  font-style: normal;
+}
+
+.prompt-text {
+  font-family: "Prompt", sans-serif;
+  font-weight: 300;
+  font-style: normal;
+}
+
+.tiger {
+  transform: scaleX(-1); 
+  display: block;
+  /* margin-top: 12vh; */
+  width: 500px;
+  height: 450px;
+  /* position: absolute; */
+  top: -17rem;
+  right: 0.2vw;
+  z-index: 1000;
+  filter: drop-shadow(10px 10px 15px rgba(52, 53, 53, 0.995));
+  /* box-shadow: 10px 10px 15px rgba(0, 0, 0, 0.4); */
+}
+
+.custom-scrollbar {
+  scrollbar-width: thin; /* Firefox: Thin scrollbar */
+  scrollbar-color: gray transparent; /* Firefox: Scrollbar color */
+}
+
+.custom-scrollbar::-webkit-scrollbar {
+  width: 8px; /* Width of the scrollbar */
+  height: 8px; /* Width of the scrollbar */
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent; /* Background of the scrollbar track */
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background-color: gray; /* Scrollbar thumb color */
+  border-radius: 10px; /* Rounded corners for the scrollbar thumb */
+  border: 2px solid transparent; /* Adds padding around the thumb */
+  background-clip: content-box; /* Ensures the border creates a padding effect */
+}
+
