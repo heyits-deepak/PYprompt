@@ -57,6 +57,12 @@ const Prompt = () => {
         };
     }, [commands, cmdByUser, commandIndex]);
 
+    useEffect(() => {
+        if (containerRef.current) {
+            containerRef.current.scrollTop = containerRef.current.scrollHeight;
+        }
+    }, [commands]);
+
     const handleKeyDown = (event) => {
         if (event.ctrlKey && (event.key === "+" || event.key === "=")) {
             event.preventDefault();
@@ -71,11 +77,6 @@ const Prompt = () => {
             setCmdByUser("");
             setCommandIndex(null);
 
-            setTimeout(() => {
-                if (containerRef.current) {
-                    containerRef.current.scrollTop = containerRef.current.scrollHeight;
-                }
-            }, 0);
         } else if (event.key === "ArrowUp") {
             if (commandIndex === null && commands.length > 0) {
                 setCommandIndex(commands.length - 1);
@@ -123,7 +124,7 @@ const Prompt = () => {
                     <p className='text-center italic'>"Unleash the power of the command line."</p>
                     <p className='text-xs text-center mb-8 italic'>~~ Developed by Deepak Sharma ~~</p>
 
-                    <div className='h-auto w-full prompt-text text-xs space-y-2' style={{ fontSize: `${fontSize}px` }}>
+                    <div className='h-auto w-full prompt-text text-xs space-y-4' style={{ fontSize: `${fontSize}px` }}>
                         {commands.map((cmd, index) => (
                             <div key={index} className="space-y-1">
                                 <div className="flex items-center">
