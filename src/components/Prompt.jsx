@@ -1,15 +1,20 @@
 import React, { useEffect, useRef, useState } from 'react'
 import { IoMdContract, IoMdExpand } from "react-icons/io";
+import { MdOutlineDeleteForever } from "react-icons/md";
 
-const Prompt = () => {
+const Prompt = ({i, promptCount, deletePrompt, isExpanded, setExpandedIndex}) => {
     const [startPrompt, setStartPrompt] = useState('')
     const [cmdByUser, setCmdByUser] = useState('')
     const [commands, setCommands] = useState([]);
     const [commandIndex, setCommandIndex] = useState(null);
     const [fontSize, setFontSize] = useState(15);
-    const [expandPrompt, setExpandPrompt] = useState(false);
+    // const [expandPrompt, setExpandPrompt] = useState(false);
 
     const containerRef = useRef(null);
+
+    const toggleExpand = () => {
+        setExpandedIndex(isExpanded ? null : i); // Expand if not expanded, otherwise collapse
+      };
 
     const executeCommand = async (command) => {
         try {
@@ -47,7 +52,7 @@ const Prompt = () => {
     };
 
     useEffect(() => {
-        setTimeout(() => setStartPrompt(`Madpacker\\root>`), 1000)
+        setTimeout(() => setStartPrompt(`Madpacker\\root>`), 800)
     }, [])
 
     useEffect(() => {
@@ -104,25 +109,33 @@ const Prompt = () => {
       
     return (
         <>
-            <div className={`${expandPrompt ? 'absolute top-0 left-0 h-[99.5vh] w-screen':'h-[75vh] w-8/12'} z-10 bg-black 
-              rounded-md shadow-xl shadow-gray-950 border border-gray-800`}>
+            <div className={`${isExpanded ? 'absolute top-0 left-0 h-[99.5vh] w-screen': `w-[100%] ${promptCount === 1 ? 'h-[100%]': 'h-[40vh]'}`} bg-black 
+              rounded-md shadow-xl shadow-gray-950 border border-gray-800 z-30`}>
                 <div className='flex justify-between items-center p-2 pb-3'>
                     <div className='flex gap-2'>
-                        <div className='w-[15px] h-[15px] bg-red-700 rounded-full'></div>
-                        <div className='w-[15px] h-[15px] bg-yellow-600 rounded-full'></div>
-                        <div className='w-[15px] h-[15px] bg-green-700 rounded-full'></div>
+                        <div className='w-[12px] h-[12px] bg-red-700 rounded-full'></div>
+                        <div className='w-[12px] h-[12px] bg-yellow-600 rounded-full'></div>
+                        <div className='w-[12px] h-[12px] bg-green-700 rounded-full'></div>
                     </div>
 
-                    {expandPrompt ? 
-                        <IoMdContract className='text-gray-600 cursor-pointer text-2xl' onClick={()=>setExpandPrompt(false)}/>
-                        : <IoMdExpand className='text-gray-600 cursor-pointer text-2xl' onClick={()=>setExpandPrompt(true)}/>
-                    }
+                    <div className='flex'>
+                        {isExpanded ? 
+                            <IoMdContract className='text-gray-600 cursor-pointer text-xl' onClick={toggleExpand}/>
+                            : <IoMdExpand className='text-gray-600 cursor-pointer text-xl' onClick={toggleExpand}/>
+                        }
+                        {promptCount !==1 && !isExpanded && 
+                            <MdOutlineDeleteForever className='text-red-900 cursor-pointer text-xl'
+                            onClick={()=>deletePrompt(i)}/>}
+                    </div>
                 </div>
 
-                <div className='w-full h-[90%] overflow-auto text-[#2dc90a] p-2 mb-2 custom-scrollbar' ref={containerRef}>
+                <div className={`w-full ${promptCount === 1 ? 'h-[90%]': 'h-[85%]'} overflow-auto text-[#2dc90a] p-2 mb-2 custom-scrollbar`} ref={containerRef}>
+                  {promptCount===1 && (<>
                     <p className='text-7xl text-center prompt-head mt-2'><span className='text-orange-400'>Paw</span>Shell</p>
                     <p className='text-center italic'>"Unleash the power of the command line."</p>
                     <p className='text-xs text-center mb-8 italic'>~~ Developed by Deepak Sharma ~~</p>
+                  </>)}
+                  {/* <p className='text-7xl text-center prompt-head mt-2'>{promptCount}</p> */}
 
                     <div className='h-auto w-full prompt-text text-xs space-y-4' style={{ fontSize: `${fontSize}px` }}>
                         {commands.map((cmd, index) => (
