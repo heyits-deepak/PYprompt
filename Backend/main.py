@@ -2,16 +2,25 @@ import sys
 import subprocess
 import os
 import re
+import logging
 from api import app
 import threading
+
+logging.basicConfig(level=logging.DEBUG, filename="shell_debug.log", filemode="w",
+                    format="%(asctime)s - %(levelname)s - %(message)s")
 
 def translate_command(command):
     """Translate Unix-like commands to Windows commands if needed."""
     parts = command.split()
     base_cmd = parts[0]
     
+    if base_cmd == "cd":
+        if len(parts) > 1:
+            return f"cd {parts[1]}"  
+        else:
+            return "cd" 
     if base_cmd == "ls":
-        return "dir"  # Equivalent of 'ls' in Windows
+        return "dir"  
     elif base_cmd == "mkdir":
         return command  # mkdir works the same in both systems
     elif base_cmd == "rm":
@@ -246,24 +255,50 @@ def handle_grep(pattern, file_path):
     return ""
 
 def execute_command(command):
-    """Execute the translated command using subprocess."""
-    command = handle_redirection(command)
-    
-    # Skip execution if it's an empty command
-    if not command:
-        return
-    
-    translated_command = translate_command(command)
-    
-    # Execute the command using subprocess
-    process = subprocess.Popen(translated_command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-    stdout, stderr = process.communicate()
-    
-    if stdout:
-        sys.stdout.write(stdout.decode())
-    if stderr:
-        sys.stderr.write(stderr.decode())
+    """Execute the translated command and return the result."""
+    try:
+        logging.debug(f"Executing command: {command}")
+        command = translate_command(command)
+        
+        if not command.strip():
+            return "Invalid command\n"
 
+        parts = command.split()
+        base_cmd = parts[0]
+
+        # Handle 'cd' command directly
+        if base_cmd == "cd":
+            if len(parts) > 1:
+                target_dir = parts[1]
+                try:
+                    os.chdir(target_dir)  # Change current working directory
+                    return f"Changed directory to: {os.getcwd()}\n"
+                except FileNotFoundError:
+                    return f"cd: {target_dir}: No such file or directory\n"
+                except PermissionError:
+                    return f"cd: {target_dir}: Permission denied\n"
+            else:
+                # No directory specified; go to home directory
+                os.chdir(os.path.expanduser("~"))
+                return f"Changed directory to: {os.getcwd()}\n"
+
+        # Handle other commands as before
+        process = subprocess.Popen(
+            command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE
+        )
+        stdout, stderr = process.communicate()
+
+        result = ""
+        if stdout:
+            result += stdout.decode()
+        if stderr:
+            result += stderr.decode()
+
+        logging.debug(f"Command output: {result}")
+        return result
+    except Exception as e:
+        logging.error(f"Error executing command: {e}")
+        return f"Error: {e}\n"
 
 def start_fastapi():
     """Run the FastAPI server in a separate thread."""

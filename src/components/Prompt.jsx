@@ -25,34 +25,48 @@ const Prompt = ({i, promptCount, deletePrompt, isExpanded, setExpandedIndex}) =>
                 },
                 body: JSON.stringify({ command }),
             });
-            
+    
             const data = await response.json();
-            
+    
             if (data.success !== false) {
                 if (data.response === 'CLEAR_TERMINAL') {
                     setCommands([]);
                 } else {
-                    setCommands(prev => [...prev, {
-                        command: command,
-                        response: data.response
-                    }]);
+                    setCommands((prev) => [
+                        ...prev,
+                        {
+                            command: command,
+                            response: data.response,
+                        },
+                    ]);
                 }
+                console.log(data.pwd)
+                if (data.pwd) {
+                    setStartPrompt(`Madpacker\\${data.pwd}>`);
+                }
+    
             } else {
-                setCommands(prev => [...prev, {
-                    command: command,
-                    response: `Error: ${data.error || 'Unknown error occurred'}`
-                }]);
+                setCommands((prev) => [
+                    ...prev,
+                    {
+                        command: command,
+                        response: `Error: ${data.error || 'Unknown error occurred'}`,
+                    },
+                ]);
             }
         } catch (error) {
-            setCommands(prev => [...prev, {
-                command: command,
-                response: 'Connection error: Could not reach the server'
-            }]);
+            setCommands((prev) => [
+                ...prev,
+                {
+                    command: command,
+                    response: 'Connection error: Could not reach the server',
+                },
+            ]);
         }
     };
-
+    
     useEffect(() => {
-        setTimeout(() => setStartPrompt(`Madpacker\\root>`), 800)
+       setTimeout(() => setStartPrompt(`Madpacker\\root>`), 1000)
     }, [])
 
     useEffect(() => {
