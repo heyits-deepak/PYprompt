@@ -2,19 +2,38 @@ import React, { useEffect, useRef, useState } from 'react'
 import { IoMdContract, IoMdExpand } from "react-icons/io";
 import { MdOutlineDeleteForever } from "react-icons/md";
 
-const Prompt = ({i, promptCount, deletePrompt, isExpanded, setExpandedIndex}) => {
+const Prompt = ({prompt, promptCount, deletePrompt, toggleExpand, updatePromptCommands}) => {
     const [startPrompt, setStartPrompt] = useState('')
     const [cmdByUser, setCmdByUser] = useState('')
-    const [commands, setCommands] = useState([]);
+    const [commands, setCommands] = useState(prompt.commands || []);
     const [commandIndex, setCommandIndex] = useState(null);
     const [fontSize, setFontSize] = useState(15);
-    // const [expandPrompt, setExpandPrompt] = useState(false);
 
     const containerRef = useRef(null);
 
-    const toggleExpand = () => {
-        setExpandedIndex(isExpanded ? null : i); // Expand if not expanded, otherwise collapse
-      };
+    useEffect(() => {
+        // Clear commands if the prompt is deleted
+        if (!prompt) {
+          setCommands([]);
+        }
+      }, [prompt]);
+
+      useEffect(() => {
+        setTimeout(() => setStartPrompt(`Madpacker\\root>`), 800)
+     }, [])
+ 
+     useEffect(() => {
+         window.addEventListener("keydown", handleKeyDown);
+         return () => {
+             window.removeEventListener("keydown", handleKeyDown);
+         };
+     }, [commands, cmdByUser, commandIndex]);
+ 
+     useEffect(() => {
+         if (containerRef.current) {
+             containerRef.current.scrollTop = containerRef.current.scrollHeight;
+         }
+     }, [commands]);
 
     const executeCommand = async (command) => {
         try {
@@ -32,55 +51,53 @@ const Prompt = ({i, promptCount, deletePrompt, isExpanded, setExpandedIndex}) =>
                 if (data.response === 'CLEAR_TERMINAL') {
                     setCommands([]);
                 } else {
-                    setCommands((prev) => [
-                        ...prev,
-                        {
-                            command: command,
+                    const newCommand = {
+                            startPrompt,
+                            command,
                             response: data.response,
-                        },
-                    ]);
+                        }
+
+                    // Update local commands state
+                    setCommands((prev) => {
+                        const updatedCommands = [...prev, newCommand];
+                        updatePromptCommands(prompt.promptId, updatedCommands); // Update prompt.commands in parent
+                        return updatedCommands;
+                    });
                 }
-                console.log(data.pwd)
-                if (data.pwd) {
-                    setStartPrompt(`Madpacker\\${data.pwd}>`);
-                }
+                // if (data.pwd) {
+                //     console.log(data.pwd)
+                //     setStartPrompt(`Madpacker\\${data.pwd}>`);
+                // }
     
             } else {
-                setCommands((prev) => [
-                    ...prev,
-                    {
-                        command: command,
-                        response: `Error: ${data.error || 'Unknown error occurred'}`,
-                    },
-                ]);
+                const newCommand = {
+                            startPrompt,
+                            command,
+                            response: `Error: ${data.error || 'Unknown error occurred'}`,
+                        }
+
+                    // Update local commands state
+                    setCommands((prev) => {
+                        const updatedCommands = [...prev, newCommand];
+                        updatePromptCommands(prompt.promptId, updatedCommands); // Update prompt.commands in parent
+                        return updatedCommands;
+                    });
+
             }
         } catch (error) {
-            setCommands((prev) => [
-                ...prev,
-                {
-                    command: command,
-                    response: 'Connection error: Could not reach the server',
-                },
-            ]);
+            const errorCommand = {
+                startPrompt,
+                command,
+                response: 'Connection error: Could not reach the server',
+              };
+        
+              setCommands((prev) => {
+                const updatedCommands = [...prev, errorCommand];
+                updatePromptCommands(prompt.promptId, updatedCommands); // Update prompt.commands in parent
+                return updatedCommands;
+              });
         }
-    };
-    
-    useEffect(() => {
-       setTimeout(() => setStartPrompt(`Madpacker\\root>`), 1000)
-    }, [])
-
-    useEffect(() => {
-        window.addEventListener("keydown", handleKeyDown);
-        return () => {
-            window.removeEventListener("keydown", handleKeyDown);
-        };
-    }, [commands, cmdByUser, commandIndex]);
-
-    useEffect(() => {
-        if (containerRef.current) {
-            containerRef.current.scrollTop = containerRef.current.scrollHeight;
-        }
-    }, [commands]);
+    };      
 
     const handleKeyDown = (event) => {
         if (event.ctrlKey && (event.key === "+" || event.key === "=")) {
@@ -123,8 +140,8 @@ const Prompt = ({i, promptCount, deletePrompt, isExpanded, setExpandedIndex}) =>
       
     return (
         <>
-            <div className={`${isExpanded ? 'absolute top-0 left-0 h-[99.5vh] w-screen': `w-[100%] ${promptCount === 1 ? 'h-[100%]': 'h-[40vh]'}`} bg-black 
-              rounded-md shadow-xl shadow-gray-950 border border-gray-800 z-30`}>
+            <div className={`${prompt.isExpanded ? 'absolute top-0 left-0 h-[99.5vh] w-screen z-50': `w-[100%] ${promptCount === 1 ? 'h-[76vh]': 'h-[40vh]'}`} bg-black 
+              rounded-md shadow-xl shadow-gray-950 border border-gray-800`}>
                 <div className='flex justify-between items-center p-2 pb-3'>
                     <div className='flex gap-2'>
                         <div className='w-[12px] h-[12px] bg-red-700 rounded-full'></div>
@@ -133,13 +150,13 @@ const Prompt = ({i, promptCount, deletePrompt, isExpanded, setExpandedIndex}) =>
                     </div>
 
                     <div className='flex'>
-                        {isExpanded ? 
-                            <IoMdContract className='text-gray-600 cursor-pointer text-xl' onClick={toggleExpand}/>
-                            : <IoMdExpand className='text-gray-600 cursor-pointer text-xl' onClick={toggleExpand}/>
+                        {prompt.isExpanded ? 
+                            <IoMdContract className='text-gray-600 cursor-pointer text-xl' onClick={()=>toggleExpand(prompt.promptId)}/>
+                            : <IoMdExpand className='text-gray-600 cursor-pointer text-xl' onClick={()=>toggleExpand(prompt.promptId)}/>
                         }
-                        {promptCount !==1 && !isExpanded && 
+                        {promptCount !==1 && !prompt.isExpanded && 
                             <MdOutlineDeleteForever className='text-red-900 cursor-pointer text-xl'
-                            onClick={()=>deletePrompt(i)}/>}
+                            onClick={()=>deletePrompt(prompt.promptId)}/>}
                     </div>
                 </div>
 
@@ -149,13 +166,12 @@ const Prompt = ({i, promptCount, deletePrompt, isExpanded, setExpandedIndex}) =>
                     <p className='text-center italic'>"Unleash the power of the command line."</p>
                     <p className='text-xs text-center mb-8 italic'>~~ Developed by Deepak Sharma ~~</p>
                   </>)}
-                  {/* <p className='text-7xl text-center prompt-head mt-2'>{promptCount}</p> */}
-
+             
                     <div className='h-auto w-full prompt-text text-xs space-y-4' style={{ fontSize: `${fontSize}px` }}>
                         {commands.map((cmd, index) => (
                             <div key={index} className="space-y-1">
                                 <div className="flex items-center">
-                                    <span>{`Madpacker\\root>`}</span>
+                                    <span>{cmd.startPrompt}</span>
                                     <span className="ml-1">{typeof cmd === 'string' ? cmd : cmd.command}</span>
                                 </div>
                                 {cmd.response && (
