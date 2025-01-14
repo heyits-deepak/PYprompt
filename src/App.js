@@ -7,8 +7,13 @@ import Sidebar from './components/Sidebar';
 
 function App() {
   const [promptCount, setPromptCount] = useState(1);
-  const [prompts, setPrompts] = useState([]);
-  const [nextId, setNextId] = useState(null);
+  const [prompts, setPrompts] = useState([{
+    promptId: 0,
+    commands: [],
+    isExpanded: false,
+    isActive: true
+  }]);
+  const [nextId, setNextId] = useState(1);
 
   useEffect(()=>{
     if(promptCount < 1){
@@ -19,20 +24,12 @@ function App() {
     }
   },[promptCount])
 
-  useEffect(() => {
-    setPrompts([{
-      promptId: 0,
-      commands: [],
-      isExpanded: false,
-    }]);
-    setNextId(1);
-  }, []);
-
   const addPrompt = () => {
     const newPrompt = {
       promptId: nextId,
       commands: [],
       isExpanded: false,
+      isActive: false
     };
     setPrompts((prev) => [...prev, newPrompt]);
     setNextId((prev) => prev + 1);
@@ -54,7 +51,15 @@ function App() {
     );
   };
 
-  console.log(prompts)
+  const handleInputFocus = (id) => {
+    setPrompts((prev) =>
+      prev.map((prompt) =>
+        prompt.promptId === id
+          ? { ...prompt, isActive: true }
+          : { ...prompt, isActive: false }
+      )
+    );
+  };
 
   const updatePromptCommands = (promptId, updatedCommands) => {
     setPrompts((prev) =>
@@ -75,7 +80,7 @@ function App() {
           ${(promptCount > 4) && 'overflow-auto custom-scrollbar '}`}>
           {prompts.map((prompt, index)=>(
             <Prompt key={index} prompt={prompt} promptCount={promptCount} deletePrompt={deletePrompt} 
-              toggleExpand={toggleExpand} updatePromptCommands={updatePromptCommands}/>
+              toggleExpand={toggleExpand} handleInputFocus={handleInputFocus} updatePromptCommands={updatePromptCommands}/>
           ))}
         </div>
       </div>

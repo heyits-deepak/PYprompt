@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from 'react'
 import { IoMdContract, IoMdExpand } from "react-icons/io";
 import { MdOutlineDeleteForever } from "react-icons/md";
 
-const Prompt = ({prompt, promptCount, deletePrompt, toggleExpand, updatePromptCommands}) => {
+const Prompt = ({prompt, promptCount, deletePrompt, toggleExpand, handleInputFocus, updatePromptCommands}) => {
     const [startPrompt, setStartPrompt] = useState('')
     const [cmdByUser, setCmdByUser] = useState('')
     const [commands, setCommands] = useState(prompt.commands || []);
@@ -12,11 +12,10 @@ const Prompt = ({prompt, promptCount, deletePrompt, toggleExpand, updatePromptCo
     const containerRef = useRef(null);
 
     useEffect(() => {
-        // Clear commands if the prompt is deleted
-        if (!prompt) {
-          setCommands([]);
-        }
-      }, [prompt]);
+        if (prompt.isActive) {
+            setCommands(prompt.commands);
+        } 
+    }, [prompt.isActive, prompt.promptId]);
 
       useEffect(() => {
         setTimeout(() => setStartPrompt(`Madpacker\\root>`), 800)
@@ -100,6 +99,8 @@ const Prompt = ({prompt, promptCount, deletePrompt, toggleExpand, updatePromptCo
     };      
 
     const handleKeyDown = (event) => {
+        if (!prompt.isActive) return;
+
         if (event.ctrlKey && (event.key === "+" || event.key === "=")) {
             event.preventDefault();
             setFontSize((prev) => Math.min(prev + 1, 32));
@@ -113,29 +114,51 @@ const Prompt = ({prompt, promptCount, deletePrompt, toggleExpand, updatePromptCo
             setCmdByUser("");
             setCommandIndex(null);
 
-        } else if (event.key === "ArrowUp") {
-            if (commandIndex === null && commands.length > 0) {
-                setCommandIndex(commands.length - 1);
-                setCmdByUser(typeof commands[commands.length - 1] === 'string' 
-                    ? commands[commands.length - 1] 
-                    : commands[commands.length - 1].command);
-            } else if (commandIndex !== null && commandIndex > 0) {
-                setCommandIndex(commandIndex - 1);
-                setCmdByUser(typeof commands[commandIndex - 1] === 'string' 
-                    ? commands[commandIndex - 1] 
-                    : commands[commandIndex - 1].command);
+        } 
+        else if (event.key === "ArrowUp") {
+            if (prompt.commands.length === 0) return; // No commands to navigate
+        
+            if (commandIndex === null) {
+                // If no command is selected, start with the last command
+                const lastIndex = prompt.commands.length - 1;
+                setCommandIndex(lastIndex);
+                setCmdByUser(
+                    typeof prompt?.commands[lastIndex] === "string"
+                        ? prompt?.commands[lastIndex]
+                        : prompt?.commands[lastIndex]?.command
+                );
+            } else if (commandIndex > 0) {
+                // Navigate to the previous command
+                const newIndex = commandIndex - 1;
+                setCommandIndex(newIndex);
+                setCmdByUser(
+                    typeof prompt.commands[newIndex] === "string"
+                        ? prompt?.commands[newIndex]
+                        : prompt?.commands[newIndex]?.command
+                );
             }
         } else if (event.key === "ArrowDown") {
-            if (commandIndex !== null && commandIndex < commands.length - 1) {
-                setCommandIndex(commandIndex + 1);
-                setCmdByUser(typeof commands[commandIndex + 1] === 'string' 
-                    ? commands[commandIndex + 1] 
-                    : commands[commandIndex + 1].command);
-            } else if (commandIndex !== null && commandIndex === commands.length - 1) {
+            if (prompt.commands.length === 0) return; // No commands to navigate
+        
+            if (commandIndex === null) {
+                // If no command is selected, do nothing on ArrowDown
+                return;
+            } else if (commandIndex < prompt.commands.length - 1) {
+                // Navigate to the next command
+                const newIndex = commandIndex + 1;
+                setCommandIndex(newIndex);
+                setCmdByUser(
+                    typeof prompt.commands[newIndex] === "string"
+                        ? prompt?.commands[newIndex]
+                        : prompt?.commands[newIndex]?.command
+                );
+            } else if (commandIndex === prompt.commands.length - 1) {
+                // If at the last command, reset to no selection
                 setCommandIndex(null);
                 setCmdByUser("");
             }
         }
+        
     };
       
     return (
@@ -190,6 +213,7 @@ const Prompt = ({prompt, promptCount, deletePrompt, toggleExpand, updatePromptCo
                                 onKeyDown={handleKeyDown}
                                 className="bg-black prompt-text text-[#2dc90a] outline-none ml-1 w-full" 
                                 autoFocus={true}
+                                onFocus={()=>handleInputFocus(prompt.promptId)}
                                 spellCheck="false"
                             />
                         </div>
