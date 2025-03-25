@@ -16,6 +16,7 @@ class CommandResponse(BaseModel):
     response: str
     success: bool = True
     error: Optional[str] = None
+    pwd: str
 
 app = FastAPI()
 
