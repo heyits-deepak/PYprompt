@@ -163,7 +163,7 @@ const Prompt = ({prompt, promptCount, deletePrompt, toggleExpand, handleInputFoc
       
     return (
         <>
-            <div className={`${prompt.isExpanded ? 'absolute top-0 left-0 h-[99.5vh] w-screen z-50': `w-[100%] ${promptCount === 1 ? 'h-[76vh]': 'h-[40vh]'}`} bg-black 
+            <div className={`${prompt.isExpanded ? 'absolute top-0 left-0 h-[99.5vh] w-screen z-50': `w-[100%] ${promptCount < 3 ? 'h-full': 'h-[40vh]'}`} bg-black 
               rounded-md shadow-xl shadow-gray-950 border border-gray-800`}>
                 <div className='flex justify-between items-center p-2 pb-3'>
                     <div className='flex gap-2'>
