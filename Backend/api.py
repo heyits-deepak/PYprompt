@@ -9,6 +9,7 @@ import shutil
 from datetime import datetime
 from typing import Optional
 
+
 class CommandRequest(BaseModel):
     command: str
 
@@ -334,10 +335,9 @@ command_handler = CommandHandler()
 async def process_prompt(command_req: CommandRequest) -> CommandResponse:
     try:
         response = command_handler.execute(command_req.command)
-        return CommandResponse(response=response)
+        return CommandResponse(response=response, pwd=command_handler.current_directory)
     except Exception as e:
-        return CommandResponse(response="Error", success=False, error=str(e))
-
+        return CommandResponse(response="Error", success=False, error=str(e), pwd=command_handler.current_directory)
 
 if __name__ == "__main__":
     import uvicorn
