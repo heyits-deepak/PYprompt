@@ -6,6 +6,7 @@ const Prompt = ({prompt, promptCount, deletePrompt, toggleExpand, handleInputFoc
     const [startPrompt, setStartPrompt] = useState('')
     const [cmdByUser, setCmdByUser] = useState('')
     const [commands, setCommands] = useState(prompt.commands || []);
+    const [cmdLength, setCmdLength] = useState(prompt.commands.length);
     const [commandIndex, setCommandIndex] = useState(null);
     const [fontSize, setFontSize] = useState(15);
 
@@ -22,11 +23,13 @@ const Prompt = ({prompt, promptCount, deletePrompt, toggleExpand, handleInputFoc
      }, [])
  
      useEffect(() => {
-         window.addEventListener("keydown", handleKeyDown);
+        if(prompt.isActive){
+            window.addEventListener("keydown", handleKeyDown);
+        }
          return () => {
              window.removeEventListener("keydown", handleKeyDown);
          };
-     }, [commands, cmdByUser, commandIndex]);
+     }, [commands, cmdByUser, commandIndex, prompt.isActive]);
  
      useEffect(() => {
          if (containerRef.current) {
@@ -48,6 +51,7 @@ const Prompt = ({prompt, promptCount, deletePrompt, toggleExpand, handleInputFoc
     
             if (data.success !== false) {
                 if (data.response === 'CLEAR_TERMINAL') {
+                    setCmdLength(0)
                     setCommands([]);
                 } else {
                     const newCommand = {
@@ -59,6 +63,7 @@ const Prompt = ({prompt, promptCount, deletePrompt, toggleExpand, handleInputFoc
                     // Update local commands state
                     setCommands((prev) => {
                         const updatedCommands = [...prev, newCommand];
+                        setCmdLength(updatedCommands.length)
                         updatePromptCommands(prompt.promptId, updatedCommands); // Update prompt.commands in parent
                         return updatedCommands;
                     });
@@ -78,6 +83,7 @@ const Prompt = ({prompt, promptCount, deletePrompt, toggleExpand, handleInputFoc
                     // Update local commands state
                     setCommands((prev) => {
                         const updatedCommands = [...prev, newCommand];
+                        setCmdLength(updatedCommands.length)
                         updatePromptCommands(prompt.promptId, updatedCommands); // Update prompt.commands in parent
                         return updatedCommands;
                     });
@@ -92,6 +98,7 @@ const Prompt = ({prompt, promptCount, deletePrompt, toggleExpand, handleInputFoc
         
               setCommands((prev) => {
                 const updatedCommands = [...prev, errorCommand];
+                setCmdLength(updatedCommands.length)
                 updatePromptCommands(prompt.promptId, updatedCommands); // Update prompt.commands in parent
                 return updatedCommands;
               });
@@ -116,25 +123,26 @@ const Prompt = ({prompt, promptCount, deletePrompt, toggleExpand, handleInputFoc
 
         } 
         else if (event.key === "ArrowUp") {
-            if (prompt.commands.length === 0) return; // No commands to navigate
+            if (cmdLength === 0) return; // No commands to navigate
         
             if (commandIndex === null) {
                 // If no command is selected, start with the last command
-                const lastIndex = prompt.commands.length - 1;
+                const lastIndex = cmdLength - 1;
                 setCommandIndex(lastIndex);
                 setCmdByUser(
-                    typeof prompt?.commands[lastIndex] === "string"
-                        ? prompt?.commands[lastIndex]
-                        : prompt?.commands[lastIndex]?.command
+                    typeof commands[lastIndex] === "string"
+                        ? commands[lastIndex]
+                        : commands[lastIndex]?.command
                 );
+
             } else if (commandIndex > 0) {
                 // Navigate to the previous command
                 const newIndex = commandIndex - 1;
                 setCommandIndex(newIndex);
                 setCmdByUser(
-                    typeof prompt.commands[newIndex] === "string"
-                        ? prompt?.commands[newIndex]
-                        : prompt?.commands[newIndex]?.command
+                    typeof commands[newIndex] === "string"
+                        ? commands[newIndex]
+                        : commands[newIndex]?.command
                 );
             }
         } else if (event.key === "ArrowDown") {
@@ -206,11 +214,10 @@ const Prompt = ({prompt, promptCount, deletePrompt, toggleExpand, handleInputFoc
                         ))}
                         <div className='flex items-center'>
                             <span>{startPrompt}</span>
-                            <input 
+                            <input
                                 type="text" 
                                 value={cmdByUser} 
                                 onChange={(e)=>setCmdByUser(e.target.value)} 
-                                onKeyDown={handleKeyDown}
                                 className="bg-black prompt-text text-[#2dc90a] outline-none ml-1 w-full" 
                                 autoFocus={true}
                                 onFocus={()=>handleInputFocus(prompt.promptId)}
