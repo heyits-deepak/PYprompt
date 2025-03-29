@@ -10,19 +10,11 @@ function App() {
   const [prompts, setPrompts] = useState([{
     promptId: 0,
     commands: [],
+    isDeleted: false,
     isExpanded: false,
-    isActive: true
+    isActive: false
   }]);
   const [nextId, setNextId] = useState(1);
-
-  // useEffect(()=>{
-  //   if(promptCount < 1){
-  //     setPromptCount(1)
-  //   }
-  //   if(promptCount > 2){
-  //     setPromptCount(2)
-  //   }
-  // },[promptCount])
 
   const addPrompt = () => {
     if(promptCount > 5){
@@ -41,8 +33,6 @@ function App() {
       setPromptCount((prev)=>prev+1) 
     }
   };
-
-
 
   const deletePrompt = (id) => {
     setPrompts((prev) =>
