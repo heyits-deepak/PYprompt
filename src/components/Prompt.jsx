@@ -19,7 +19,12 @@ const Prompt = ({prompt, promptCount, deletePrompt, toggleExpand, handleInputFoc
     }, [prompt.isActive, prompt.promptId]);
 
       useEffect(() => {
-        setTimeout(() => setStartPrompt(`Madpacker\\root>`), 800)
+        executeCommand('')
+        setTimeout(() =>{
+            if(startPrompt){
+                setStartPrompt(startPrompt) 
+            }
+        }, 800)
      }, [])
  
      useEffect(() => {
@@ -54,6 +59,9 @@ const Prompt = ({prompt, promptCount, deletePrompt, toggleExpand, handleInputFoc
                     setCmdLength(0)
                     setCommands([]);
                 } else {
+                    // Store the pwd from the response
+                    setStartPrompt(`${data.pwd}>`); 
+                    
                     const newCommand = {
                             startPrompt,
                             command,
@@ -68,10 +76,6 @@ const Prompt = ({prompt, promptCount, deletePrompt, toggleExpand, handleInputFoc
                         return updatedCommands;
                     });
                 }
-                // if (data.pwd) {
-                //     console.log(data.pwd)
-                //     setStartPrompt(`Madpacker\\${data.pwd}>`);
-                // }
     
             } else {
                 const newCommand = {
@@ -171,7 +175,8 @@ const Prompt = ({prompt, promptCount, deletePrompt, toggleExpand, handleInputFoc
       
     return (
         <>
-            <div className={`${prompt.isExpanded ? 'absolute top-0 left-0 h-[99.5vh] w-screen z-50': `w-[100%] ${promptCount < 3 ? 'h-full': 'h-[40vh]'}`} bg-black 
+            <div className={`${prompt.isExpanded ? 'absolute top-0 left-0 h-[99.5vh] w-screen z-50': `w-[100%] ${promptCount < 3 ? 
+                (promptCount === 1 || promptCount === 2) ? 'h-[75vh]': 'h-full': 'h-[40vh]'}`} bg-black 
               rounded-md shadow-xl shadow-gray-950 border border-gray-800`}>
                 <div className='flex justify-between items-center p-2 pb-3'>
                     <div className='flex gap-2'>

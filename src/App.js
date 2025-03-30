@@ -17,7 +17,7 @@ function App() {
   const [nextId, setNextId] = useState(1);
 
   const addPrompt = () => {
-    if(promptCount > 5){
+    if(promptCount > 3){
       return;
     }else{
       const newPrompt = {
@@ -79,7 +79,7 @@ function App() {
         {promptCount === 1 && <Panther />}
         
         <div className={`grid ${promptCount === 1 ? 'w-9/12 h-[75vh] grid-cols-1': `w-11/12 mt-8  
-          ${promptCount === 2 ? 'h-[70vh] grid-cols-2': 'h-[80vh] grid-cols-3'}`} gap-3 
+          ${promptCount === 2 ? 'h-[70vh] grid-cols-2': 'h-[80vh] grid-cols-2'}`} gap-3 
           ${(promptCount > 8) && 'overflow-auto custom-scrollbar '}`}>
           
           {prompts?.filter((item)=> !item.isDeleted)?.map((prompt, index)=>(
